@@ -23,8 +23,8 @@ static NSString  * const cellIdentifier = @"menuCellID";
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     
     if (self) {
-        self.backgroundColor = [UIColor clearColor];
-        self.contentView.backgroundColor = [UIColor clearColor];
+
+
         if (@available(iOS 8.2, *)) {
             self.textLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightThin];
         } else {
@@ -37,6 +37,7 @@ static NSString  * const cellIdentifier = @"menuCellID";
     return self;
 }
 
+
 @end
 
 
@@ -44,7 +45,6 @@ static NSString  * const cellIdentifier = @"menuCellID";
 
 @property (nonatomic, strong) NSArray *dataSourceArray;
 
-@property (nonatomic, strong) UITableView *tableView;
 
 @property (nonatomic, copy) CellClickBlock cellClickblock;
 
@@ -56,6 +56,7 @@ static NSString  * const cellIdentifier = @"menuCellID";
     self = [super initWithFrame:frame];
     
     if (self) {
+        self.backgroundColor = [UIColor redColor];
         self.dataSourceArray = dataArray;
         [self addSubviews];
     }
@@ -65,15 +66,15 @@ static NSString  * const cellIdentifier = @"menuCellID";
 - (void)addSubviews {
     
     [self.tableView setFrame:self.bounds];
-
     [self addSubview:self.tableView];
 
 }
 -(void)layoutSubviews {
     
+    [super layoutSubviews];
+
     [self.tableView setFrame:self.bounds];
 
-    [super layoutSubviews];
 }
 
 - (void)setCellClickblock:(CellClickBlock)cellClickblock {
@@ -101,23 +102,25 @@ static NSString  * const cellIdentifier = @"menuCellID";
     return cell;
 }
 
-- (void)reloadmenuTableView {
+- (void)reloadMenuTableView {
     
     [self.tableView reloadData];
 }
+
+
 #pragma mark - UITableViewDelegate
-
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     NSLog(@"选择了%@",self.dataSourceArray[indexPath.row]);
     
     if (self.cellClickblock) {
-        self.cellClickblock(self.dataSourceArray[indexPath.row]);
+        NSString *compositeStr =self.dataSourceArray[indexPath.row];
+        
+        NSString *nameStr = compositeStr.length < 2 ? compositeStr:[compositeStr substringWithRange:NSMakeRange(0, 2)];
+        self.cellClickblock(nameStr);
         
     }
 }
-
 
 
 - (UITableView *)tableView {
@@ -127,7 +130,7 @@ static NSString  * const cellIdentifier = @"menuCellID";
         tableView.dataSource = self;
         tableView.delegate = self;
         tableView.rowHeight = 44;
-        _tableView.backgroundColor = [UIColor clearColor];
+        tableView.backgroundColor = [UIColor yellowColor];
         [tableView registerClass:[MenuTableViewCell class] forCellReuseIdentifier:cellIdentifier];
         tableView.tableFooterView = [UIView new];
 

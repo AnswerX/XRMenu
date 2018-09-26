@@ -9,7 +9,7 @@
 
 #import "MenuView.h"
 #import "MenuTableView.h"
-
+#define MenuTableViewY CGRectGetMaxY(self.frame)
 
 @interface MenuView ()
 
@@ -18,9 +18,9 @@
 @property (nonatomic, strong) NSMutableArray<UIButton *> *buttonArray;
 @property (nonatomic, assign) BOOL showTableView;
 
-@property (nonatomic, strong) MenuTableView *tableView;
+@property (nonatomic, strong) MenuTableView *menuTableView;
 @property (nonatomic, strong) UIButton *compositeBtn;//综合按钮
-
+@property (nonatomic, strong) UIView *coverView;//背景视图
 @end
 
 
@@ -90,31 +90,33 @@
         
         if (button.tag == MenuViewBtnTypeComposite) {
             self.compositeBtn = button;
+            [button setImage:[UIImage imageNamed:@"down_black"] forState:UIControlStateNormal];
+            [button setImage:[UIImage imageNamed:@"down_red"] forState:UIControlStateSelected];
+            [button setSelected:YES];
         }
     }
     
-    [self addSubview:self.tableView];
-    
-    [self.tableView reloadmenuTableView];
+
     
 }
 
 - (void)layoutSubviews {
+    
     NSAssert(self.buttonArray.count>0, @"没有菜单数据");
     
     CGFloat buttonWidth = self.frame.size.width/self.buttonArray.count;
-
     for (NSInteger i = 0; i<self.buttonArray.count; i++) {
 
         UIButton *btn = self.buttonArray[i];
-
         [btn setFrame:CGRectMake(i*buttonWidth, 0, buttonWidth, buttonHeight)];
 
     }
 
     if (_showTableView) {
-        [self.tableView setFrame:CGRectMake(0, buttonHeight, self.frame.size.width, cellHeight*self.subTitleArray.count)];
-
+        
+        [self.menuTableView setFrame:CGRectMake(0, MenuTableViewY, self.frame.size.width, cellHeight*self.subTitleArray.count)];
+        
+        [self.coverView setFrame:CGRectMake(0, CGRectGetMaxY(self.menuTableView.frame), self.frame.size.width, self.superview.frame.size.height-CGRectGetMaxY(self.menuTableView.frame))];
     }
     
     [super layoutSubviews];
@@ -137,6 +139,7 @@
         
     }else if (btn.tag == MenuViewBtnTypePrice){
         
+        
     }else if (btn.tag == MenuViewBtnTypeFlitration){
         
         
@@ -148,51 +151,87 @@
     
     
 }
-
+#pragma mark - 隐藏 or 显示 列表数据
 - (void)setShowTableView:(BOOL)showTableView {
     
     _showTableView = showTableView;
-
+    
     if (_showTableView) {
+        
+        [self.superview addSubview:self.coverView];
+        [self.coverView setFrame:CGRectMake(0, CGRectGetMaxY(self.menuTableView.frame), self.frame.size.width, self.superview.frame.size.height-CGRectGetMaxY(self.menuTableView.frame))];
+
+        self.coverView.alpha = 0;
+        
+        [self.superview addSubview:self.menuTableView];
+        
+        
+        [UIView animateWithDuration:0.3 animations:^{
+            self.compositeBtn.imageView.transform = CGAffineTransformMakeRotation(M_PI);
+
+            [self.menuTableView setFrame:CGRectMake(0, MenuTableViewY, self.frame.size.width, cellHeight*self.subTitleArray.count)];
+            
+            self.coverView.alpha = 1;
+
+            [self.menuTableView.superview layoutIfNeeded];
+
+        }];
+        
+    }else {
         
         [UIView animateWithDuration:0.3 animations:^{
             
-            [self.tableView setFrame:CGRectMake(0, buttonHeight, self.frame.size.width, cellHeight*self.subTitleArray.count)];
-            self.tableView.backgroundColor = [UIColor redColor];
+            self.coverView.alpha = 0;
 
+        [self.menuTableView setFrame:CGRectMake(0, MenuTableViewY, self.frame.size.width, 0)];
+            self.compositeBtn.imageView.transform = CGAffineTransformMakeRotation(2*M_PI);
+            [self.menuTableView.superview layoutIfNeeded];
         } completion:^(BOOL finished) {
-            
-        }];
-    }else {
-        [UIView animateWithDuration:0.3 animations:^{
-            
-        [self.tableView setFrame:CGRectMake(0, buttonHeight, self.frame.size.width, 0)];
-            
-            [self.superview layoutIfNeeded];
-        } completion:^(BOOL finished) {
-            
+             [self.menuTableView removeFromSuperview];
+            [self.coverView removeFromSuperview];
         }];
     }
 }
 
-
+#pragma mark - 隐藏列表数据
+- (void)coverViewClicked {
+    
+    self.showTableView = NO;
+}
 
 #pragma mark - getters
 
-- (MenuTableView *)tableView {
+- (MenuTableView *)menuTableView {
     
-    if (!_tableView) {
-        MenuTableView *tableView = [[MenuTableView alloc] initWithFrame:CGRectMake(0, buttonHeight, self.frame.size.width, 0) dataArray:_subTitleArray];
-        __weak typeof(self)weakSelf = self;
-        [tableView setCellClickblock:^(NSString *name) {
-            [weakSelf.compositeBtn setTitle:name forState:UIControlStateNormal];
-        }];
+    if (!_menuTableView) {
+        
 
-        _tableView = tableView;
+        MenuTableView *menuTableView = [[MenuTableView alloc] initWithFrame:CGRectMake(0, MenuTableViewY, self.frame.size.width, 0) dataArray:_subTitleArray];
+        
+        [menuTableView.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] animated:NO scrollPosition:UITableViewScrollPositionNone];
+        __weak typeof(self)weakSelf = self;
+        [menuTableView setCellClickblock:^(NSString *name) {
+            [weakSelf.compositeBtn setTitle:name forState:UIControlStateNormal];
+            weakSelf.showTableView = NO;
+         
+        }];
+        
+        _menuTableView = menuTableView;
     }
-    return _tableView;
+    return _menuTableView;
 }
 
+- (UIView *)coverView {
+    
+    if (!_coverView) {
+        UIControl *coverView = [[UIControl alloc] initWithFrame:CGRectZero];
+        coverView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.2];
+        [coverView addTarget:self action:@selector(coverViewClicked) forControlEvents:UIControlEventTouchUpInside];
+        _coverView = coverView;
+        
+    }
+    return _coverView;
+}
 
 /*
 // Only override drawRect: if you perform custom drawing.

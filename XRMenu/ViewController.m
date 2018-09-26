@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "Menu/MenuView.h"
+#import "Menu/MenuTableView.h"
 @interface ViewController ()
 
 @property (nonatomic, strong) MenuView *menuView;
@@ -23,7 +24,9 @@
     MenuView *menu = [[MenuView alloc] initWithFrame:CGRectMake(0, 80, self.view.frame.size.width, buttonHeight)];
     self.menuView = menu;
     [self.view addSubview:self.menuView];
-    self.view.backgroundColor = [UIColor yellowColor];
+    
+//    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+//    [NSNotificationCenter defaultCenter] addObserver:<#(nonnull id)#> selector:<#(nonnull SEL)#> name:<#(nullable NSNotificationName)#> object:<#(nullable id)#>
 }
 
 -(void)viewDidLayoutSubviews {

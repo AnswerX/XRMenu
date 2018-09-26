@@ -13,6 +13,9 @@ typedef void(^CellClickBlock)(NSString *name);
 
 @interface MenuTableView : UIView
 
+@property (nonatomic, strong) UITableView *tableView;
+
+
 - (instancetype)initWithFrame:(CGRect)frame dataArray:(NSArray *)dataArray;
 
 - (void)setCellClickblock:(CellClickBlock)cellClickblock;
@@ -21,7 +24,7 @@ typedef void(^CellClickBlock)(NSString *name);
 /**
  刷新Table的数据
  */
-- (void)reloadmenuTableView;
+- (void)reloadMenuTableView;
 
 @end
 
